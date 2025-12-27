@@ -1,0 +1,361 @@
+{
+	"version": "2.0.0",
+	"options": {
+		"env": {
+			"JAVA_HOME": "${config:openjdk.path}"
+		},
+	},
+	"tasks": [
+
+		{
+			// 1. 身份信息
+			"label": "1-- AAPT2 Compile",
+			"type": "shell",
+			// 2. 执行动作
+			"command": "${config:androidsdk.buildToolsPath}/aapt2.exe",
+			"args": [
+				"compile",
+				"-o",
+				"build\\",
+				"res\\values\\strings.xml",
+			],
+			"options": {
+				"cwd": "${workspaceFolder}", // 在根目录运行
+			},
+			// 3. 交互与显示
+			"presentation": {
+				"echo": true, // 显示执行的命令
+				"reveal": "always", // 总是跳出终端面板
+				"focus": false, // 但不要抢夺光标焦点
+				"panel": "shared", // 使用共享面板
+				//"clear": true // 运行前清空旧日志
+			},
+			// 快捷键绑定 (Ctrl+Shift+B)
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+		},
+
+
+
+		{
+			// 1. 身份信息
+			"label": "2-- aapt2 link",
+			"type": "shell",
+			// 2. 执行动作
+			"command": "${config:androidsdk.buildToolsPath}/aapt2.exe",
+			"args": [
+				"link",
+				"-o",
+				"build/apk/unaligned.apk",
+				"-I",
+				"${config:android.buildPlatformPath}",
+				"--manifest",
+				"AndroidManifest.xml",
+				"--java",
+				"build/gen",
+				"build/values_strings.arsc.flat",
+			],
+			"options": {
+				"cwd": "${workspaceFolder}", // 在根目录运行
+			},
+			// 3. 交互与显示
+			"presentation": {
+				"echo": true, // 显示执行的命令
+				"reveal": "always", // 总是跳出终端面板
+				"focus": false, // 但不要抢夺光标焦点
+				"panel": "shared", // 使用共享面板
+				//"clear": true // 运行前清空旧日志
+			},
+			// 快捷键绑定 (Ctrl+Shift+B)
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+		},
+
+		{
+			// 1. 身份信息
+			"label": "3--- javac",
+			"type": "shell",
+			// 2. 执行动作
+			"command": "${config:openjdk.path}/bin/javac.exe",
+			"args": [
+				"-source",
+				"17",
+				"-target",
+				"17",
+				//"--boot-class-path",
+				//"${config:android.buildPlatformPath}",
+				"-d",
+				"build/obj",
+				"-classpath",
+				"${config:android.buildPlatformPath}",
+				"src/com/example/manual/MainActivity.java",
+				"build/gen/com/example/manual/R.java",
+			],
+			"options": {
+				"cwd": "${workspaceFolder}", // 在根目录运行
+			},
+			// 3. 交互与显示
+			"presentation": {
+				"echo": true, // 显示执行的命令
+				"reveal": "always", // 总是跳出终端面板
+				"focus": false, // 但不要抢夺光标焦点
+				"panel": "shared", // 使用共享面板
+				//"clear": true // 运行前清空旧日志
+			},
+			// 快捷键绑定 (Ctrl+Shift+B)
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+		},
+
+		{
+			// 1. 身份信息
+			"label": "4--- d8",
+			"type": "shell",
+			// 2. 执行动作
+			"command": "${config:androidsdk.buildTools_D8_Path}",
+			"args": [
+				"--output",
+				"build/apk/",
+				"--lib",
+				"${config:android.buildPlatformPath}",
+				"--min-api",
+				"24",
+				"build/obj/com/example/manual/*.class"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}", // 在根目录运行
+			},
+			// 3. 交互与显示
+			"presentation": {
+				"echo": true, // 显示执行的命令
+				"reveal": "always", // 总是跳出终端面板
+				"focus": false, // 但不要抢夺光标焦点
+				"panel": "shared", // 使用共享面板
+				//"clear": true // 运行前清空旧日志
+			},
+			// 快捷键绑定 (Ctrl+Shift+B)
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+		},
+
+		{
+			// 1. 身份信息
+			"label": "5--jar pack",
+			"type": "shell",
+			// 2. 执行动作
+			"command": "${config:openjdk.path}/bin/jar.exe",
+			"args": [
+				"uMf",
+				"unaligned.apk",
+				"classes.dex"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/build/apk/", // 在根目录运行
+			},
+			// 3. 交互与显示
+			"presentation": {
+				"echo": true, // 显示执行的命令
+				"reveal": "always", // 总是跳出终端面板
+				"focus": false, // 但不要抢夺光标焦点
+				"panel": "shared", // 使用共享面板
+				//"clear": true // 运行前清空旧日志
+			},
+			// 快捷键绑定 (Ctrl+Shift+B)
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+		},
+		{
+			// 1. 身份信息
+			"label": "6--zipalign",
+			"type": "shell",
+			// 2. 执行动作
+			"command": "${config:androidsdk.buildToolsPath}/zipalign.exe",
+			"args": [
+				"-f",
+				"-v",
+				"4",
+				"build/apk/unaligned.apk",
+				"build/apk/my-app-unsigned.apk"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}", // 在根目录运行
+			},
+			// 3. 交互与显示
+			"presentation": {
+				"echo": true, // 显示执行的命令
+				"reveal": "always", // 总是跳出终端面板
+				"focus": false, // 但不要抢夺光标焦点
+				"panel": "shared", // 使用共享面板
+				//"clear": true // 运行前清空旧日志
+			},
+			// 快捷键绑定 (Ctrl+Shift+B)
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+		},
+
+
+		{
+			// 1. 身份信息
+			"label": "7--apksigner",
+			"type": "shell",
+			// 2. 执行动作
+			"command": "${config:androidsdk.buildToolsPath}/apksigner.bat",
+			"args": [
+				"sign",
+				"--ks",
+				"my-release-key.keystore",
+				//"--ks-key-alias",
+				//"my-key-alias",
+				"--ks-pass",
+				"pass:password",
+				"--out",
+				"build/apk/my-app-final.apk",
+				"build/apk/my-app-unsigned.apk"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}", // 在根目录运行
+			},
+			// 3. 交互与显示
+			"presentation": {
+				"echo": true, // 显示执行的命令
+				"reveal": "always", // 总是跳出终端面板
+				"focus": false, // 但不要抢夺光标焦点
+				"panel": "shared", // 使用共享面板
+				//"clear": true // 运行前清空旧日志
+			},
+			// 快捷键绑定 (Ctrl+Shift+B)
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+		},
+
+		{
+			// 1. 身份信息
+			"label": "生成 keytool",
+			"type": "shell",
+			// 2. 执行动作
+			"command":  "${config:openjdk.path}/bin/keytool.exe",
+			"args": [
+				"-genkeypair",
+				"-v",
+				"-keystore",
+				"my-release-key.keystore",
+				"-keyalg",
+				"RSA",
+				"-keysize",
+				"2048",
+				"-validity",
+				"10000",
+				"-alias",
+				"my-alias",
+				//"-dname",
+				//"\"CN=Manual, OU=Dev, O=Manual, L=Earth, S=World, C=US\"",
+				"-storepass",
+				"password",
+				"-keypass",
+				"password",
+				
+			],
+			"options": {
+				"cwd": "${workspaceFolder}", // 在根目录运行
+			},
+			// 3. 交互与显示
+			"presentation": {
+				"echo": true, // 显示执行的命令
+				"reveal": "always", // 总是跳出终端面板
+				"focus": false, // 但不要抢夺光标焦点
+				"panel": "shared", // 使用共享面板
+				//"clear": true // 运行前清空旧日志
+			},
+			// 快捷键绑定 (Ctrl+Shift+B)
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+		},
+		{
+			// 1. 身份信息
+			"label": "apksigner",
+			"type": "shell",
+			// 2. 执行动作
+			"command": "${config:androidsdk.buildToolsPath}/apksigner.bat",
+			"args": [
+				"sign",
+				"--ks",
+				"my-release-key.keystore",
+				"--ks-key-alias",
+				"my-key-alias",
+				"--ks-pass",
+				"pass:808080",
+				"--out",
+				"out/logcatapp.apk",
+				"out/aligned_base.apk"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}", // 在根目录运行
+			},
+			// 3. 交互与显示
+			"presentation": {
+				"echo": true, // 显示执行的命令
+				"reveal": "always", // 总是跳出终端面板
+				"focus": false, // 但不要抢夺光标焦点
+				"panel": "shared", // 使用共享面板
+				//"clear": true // 运行前清空旧日志
+			},
+			// 快捷键绑定 (Ctrl+Shift+B)
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+		},
+		{
+			// 1. 身份信息
+			"label": "view singe data",
+			"type": "shell",
+			// 2. 执行动作
+			"command": "${config:androidsdk.buildToolsPath}/apksigner.bat",
+			"args": [
+				"verify",
+				"--print-certs",
+				"${input:pathInput}"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}", // 在根目录运行
+			},
+			// 3. 交互与显示
+			"presentation": {
+				"echo": true, // 显示执行的命令
+				"reveal": "always", // 总是跳出终端面板
+				"focus": false, // 但不要抢夺光标焦点
+				"panel": "shared", // 使用共享面板
+				//"clear": true // 运行前清空旧日志
+			},
+			// 快捷键绑定 (Ctrl+Shift+B)
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+		}
+	],
+	"inputs": [
+		{
+			"id": "pathInput",
+			"type": "promptString",
+			"description": "输入文件路径",
+			"default": ""
+		}
+	]
+}
