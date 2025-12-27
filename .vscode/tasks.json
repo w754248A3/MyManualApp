@@ -55,7 +55,39 @@
 				"AndroidManifest.xml",
 				"--java",
 				"build/gen",
+				//"-A",
+				//"assets",
 				"build/values_strings.arsc.flat",
+			],
+			"options": {
+				"cwd": "${workspaceFolder}", // 在根目录运行
+			},
+			// 3. 交互与显示
+			"presentation": {
+				"echo": true, // 显示执行的命令
+				"reveal": "always", // 总是跳出终端面板
+				"focus": false, // 但不要抢夺光标焦点
+				"panel": "shared", // 使用共享面板
+				//"clear": true // 运行前清空旧日志
+			},
+			// 快捷键绑定 (Ctrl+Shift+B)
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+		},
+
+
+		{
+			// 1. 身份信息
+			"label": "2.1 --jar pack assets",
+			"type": "shell",
+			// 2. 执行动作
+			"command": "${config:openjdk.path}/bin/jar.exe",
+			"args": [
+				"uf",
+				"build/apk/unaligned.apk",
+				"assets"
 			],
 			"options": {
 				"cwd": "${workspaceFolder}", // 在根目录运行
@@ -306,6 +338,34 @@
 			],
 			"options": {
 				"cwd": "${workspaceFolder}", // 在根目录运行
+			},
+			// 3. 交互与显示
+			"presentation": {
+				"echo": true, // 显示执行的命令
+				"reveal": "always", // 总是跳出终端面板
+				"focus": false, // 但不要抢夺光标焦点
+				"panel": "shared", // 使用共享面板
+				//"clear": true // 运行前清空旧日志
+			},
+			// 快捷键绑定 (Ctrl+Shift+B)
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+		},
+
+		{
+			// 1. 身份信息
+			"label": "jar list view",
+			"type": "shell",
+			// 2. 执行动作
+			"command": "${config:openjdk.path}/bin/jar.exe",
+			"args": [
+				"tf",
+				"my-app-final.apk",
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/build/apk/", // 在根目录运行
 			},
 			// 3. 交互与显示
 			"presentation": {
