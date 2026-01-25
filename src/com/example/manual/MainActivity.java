@@ -2,11 +2,15 @@ package com.example.manual;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build; // 需要导入 Build
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.ServiceWorkerClient; // 新增导入
 import android.webkit.ServiceWorkerController; // 新增导入
 import android.webkit.ValueCallback;
@@ -16,6 +20,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -29,6 +34,12 @@ public class MainActivity extends Activity {
     private ValueCallback<Uri[]> mUploadCallback;
     private static final int FILECHOOSER_RESULTCODE = 100;
 
+    // 全屏相关成员变量
+    private View customView;
+    private WebChromeClient.CustomViewCallback customViewCallback;
+    private FrameLayout fullscreenContainer;
+    private int originalOrientation; // 保存原始屏幕方向
+
     // 将资源加载器提取为成员变量，供 WebViewClient 和 ServiceWorkerClient 共用
     private AssetResourceLoader assetLoader;
 
@@ -36,6 +47,9 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        // 保存当前屏幕方向
+        originalOrientation = getRequestedOrientation();
 
         // 初始化资源加载帮助类 (配置域名和文件夹)
         assetLoader = new AssetResourceLoader(this, "mypage.test", "dist");
@@ -69,7 +83,7 @@ public class MainActivity extends Activity {
             });
         }
 
-        // 3. 设置 WebChromeClient (处理文件选择)
+        // 3. 设置 WebChromeClient (处理文件选择和全屏)
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
@@ -81,6 +95,46 @@ public class MainActivity extends Activity {
                 startActivityForResult(Intent.createChooser(intent, "File Browser"), FILECHOOSER_RESULTCODE);
                 return true;
             }
+
+            // 处理全屏显示（如全屏播放视频）
+            @Override
+            public void onShowCustomView(View view, WebChromeClient.CustomViewCallback callback) {
+                // 如果已经有一个全屏视图，先关闭它
+                if (customView != null) {
+                    onHideCustomView();
+                    return;
+                }
+
+                // 保存全屏视图和回调
+                customView = view;
+                customViewCallback = callback;
+
+                // 创建全屏容器
+                fullscreenContainer = new FrameLayout(MainActivity.this);
+                fullscreenContainer.setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+                fullscreenContainer.setBackgroundColor(0xFF000000);
+
+                // 将全屏视图添加到容器中
+                fullscreenContainer.addView(view);
+
+                // 将容器添加到Activity的根视图
+                ViewGroup decorView = (ViewGroup) getWindow().getDecorView();
+                decorView.addView(fullscreenContainer);
+
+                // 隐藏系统UI，实现真正的全屏
+                hideSystemUI();
+
+                // 设置屏幕方向为横屏（允许自动旋转）
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            }
+
+            // 处理退出全屏
+            @Override
+            public void onHideCustomView() {
+                exitFullscreen();
+            }
         });
 
         setContentView(webView);
@@ -89,10 +143,74 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
+        // 如果正在全屏，先退出全屏
+        if (customView != null) {
+            exitFullscreen();
+            return;
+        }
+
+        // 否则处理WebView的返回
         if (webView != null && webView.canGoBack()) {
             webView.goBack();
         } else {
             super.onBackPressed();
+        }
+    }
+
+    // 退出全屏的辅助方法
+    private void exitFullscreen() {
+        if (customView == null) {
+            return;
+        }
+
+        // 恢复系统UI
+        showSystemUI();
+
+        // 恢复原始屏幕方向
+        setRequestedOrientation(originalOrientation);
+
+        // 从根视图中移除全屏容器
+        ViewGroup decorView = (ViewGroup) getWindow().getDecorView();
+        decorView.removeView(fullscreenContainer);
+
+        // 调用回调通知WebView全屏已关闭
+        if (customViewCallback != null) {
+            customViewCallback.onCustomViewHidden();
+        }
+
+        // 清空引用
+        customView = null;
+        customViewCallback = null;
+        fullscreenContainer = null;
+    }
+
+    // 隐藏系统UI，实现全屏效果
+    private void hideSystemUI() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            View decorView = getWindow().getDecorView();
+            decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        } else {
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
+    }
+
+    // 显示系统UI，退出全屏效果
+    private void showSystemUI() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            View decorView = getWindow().getDecorView();
+            decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
     }
 
