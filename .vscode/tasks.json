@@ -275,6 +275,33 @@
 		},
 
 		{
+			// 复合任务：按顺序执行所有数字开头的任务
+			"label": "完整构建流程 (1-7)",
+			"dependsOn": [
+				"1-- AAPT2 Compile",
+				"2-- aapt2 link",
+				"2.1 --jar pack assets",
+				"3--- javac",
+				"4--- d8",
+				"5--jar pack",
+				"6--zipalign",
+				"7--apksigner"
+			],
+			"dependsOrder": "sequence",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"problemMatcher": []
+		},
+
+		{
 			// 1. 身份信息
 			"label": "生成 keytool",
 			"type": "shell",
