@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.manual">
+    package="com.example.manual"
+    android:versionCode="2"
+    android:versionName="1.1">
 
      <!-- 关键修复：显式声明 SDK 版本 -->
     <!-- minSdkVersion: 最低支持版本，24 代表 Android 7.0 -->
